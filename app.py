@@ -4,6 +4,7 @@ import auth
 import os
 import firebase_admin
 from firebase_admin import credentials, firestore
+from datetime import datetime
 
 # 1. PAGE CONFIGURATION
 st.set_page_config(
@@ -14,27 +15,27 @@ st.set_page_config(
 )
 
 # 2. FIREBASE DB INIT (Backend)
-# Ensure you have firebase_key.json in your folder
 if not firebase_admin._apps:
     try:
-        # Check if running locally with a file
-        if os.path.exists("firebase_key.json"):
-            cred = credentials.Certificate("firebase_key.json")
-        # Check if running on Streamlit Cloud using Secrets
-        elif 'firebase' in st.secrets:
-            # We need to create a dictionary from the secrets
-            key_dict = dict(st.secrets["firebase"])
-            # Fix the private key format (Streamlit converts \n to \\n)
-            key_dict["private_key"] = key_dict["private_key"].replace("\\n", "\n")
+        # Load from Streamlit Secrets (TOML)
+        if "firebase_credentials" in st.secrets:
+            # Create a dictionary from the secrets object
+            key_dict = dict(st.secrets["firebase_credentials"])
+            
+            # Handle private key newlines if they are escaped
+            if "\\n" in key_dict["private_key"]:
+                key_dict["private_key"] = key_dict["private_key"].replace("\\n", "\n")
+                
             cred = credentials.Certificate(key_dict)
+            firebase_admin.initialize_app(cred)
         else:
-            st.error("Firebase credentials not found!")
+            st.error("Firebase credentials not found in st.secrets!")
             st.stop()
             
-        firebase_admin.initialize_app(cred)
     except Exception as e:
         st.error(f"Failed to initialize database: {e}")
-        
+        st.stop()
+
 # 3. SESSION STATE MANAGEMENT
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
@@ -49,7 +50,7 @@ def main():
             /* Hide Streamlit Branding */
             #MainMenu {visibility: hidden;}
             footer {visibility: hidden;}
-           /*  header {visibility: hidden;} */
+           /* header {visibility: hidden;} */
             
             /* Main App Background - Light vibrant gradient */
             .stApp {
@@ -248,8 +249,13 @@ def dashboard_interface():
     
     # --- SIDEBAR ---
     with st.sidebar:
-        st.image("logo.png", width=250) # Adjust width to fit perfectly
-        st.markdown("---") # Adds a separator line
+        # Check if logo exists before displaying
+        if os.path.exists("logo.png"):
+            st.image("logo.png", width=250) 
+        else:
+            st.markdown("## LectureLoop AI")
+            
+        st.markdown("---") 
         # Profile Card with beautiful design
         st.markdown(f"""
         <div class="profile-card">
@@ -430,7 +436,6 @@ def dashboard_interface():
                         st.session_state['document_text'] = raw_text
                         
                         # 4. Track processed file in session state
-                        from datetime import datetime
                         if 'processed_files' not in st.session_state:
                             st.session_state.processed_files = []
                         
@@ -500,9 +505,6 @@ def dashboard_interface():
             try:
                 from gtts import gTTS
                 import io
-                import base64
-                import tempfile
-                import os
                 
                 # Generate audio from text
                 if st.button("🎵 Generate & Play Audio", use_container_width=True):
