@@ -19,9 +19,9 @@ except KeyError:
 
 genai.configure(api_key=API_KEY)
 
-def get_gemini_model(model_name='gemini-2.0-flash'):
+def get_gemini_model(model_name='gemini-2.5-flash'):
     """
-    Get a Gemini model. Defaults to 'gemini-2.0-flash' (fast and efficient).
+    Get a Gemini model. Defaults to 'gemini-2.5-flash' (fast and efficient).
     """
     try:
         return genai.GenerativeModel(model_name)
@@ -39,7 +39,7 @@ def extract_text_from_pdf(pdf_file):
 # --- FEATURE 1: PODCAST GENERATOR ---
 def generate_podcast_script(text_content):
     # Try multiple models in order (using confirmed available models)
-    model_names = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-pro']
+    model_names = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-pro']
     
     prompt = f"""
     You are an expert podcast producer. 
@@ -72,7 +72,7 @@ def generate_podcast_script(text_content):
 # --- FEATURE 2: FLASHCARDS GENERATOR ---
 def generate_flashcards(text_content):
     # Try multiple models in order
-    model_names = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-pro']
+    model_names = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-pro']
     
     # We ask for JSON so we can easily display it later
     prompt = f"""
@@ -109,7 +109,7 @@ def chat_with_document(question: str, document_content: str, chat_history: list 
     """
     Answer questions about a document using Gemini AI.
     """
-    model_names = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-pro']
+    model_names = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-pro']
     
     # Build context from document (limit to avoid token limits)
     context = document_content[:20000] 
