@@ -7,7 +7,7 @@ from firebase_admin import credentials, firestore
 # 1. PAGE CONFIGURATION
 st.set_page_config(
     page_title="LectureLoop AI",
-    page_icon="🎓",
+    page_icon="logo.png",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -247,6 +247,8 @@ def dashboard_interface():
     
     # --- SIDEBAR ---
     with st.sidebar:
+        st.image("logo.png", width=250) # Adjust width to fit perfectly
+        st.markdown("---") # Adds a separator line
         # Profile Card with beautiful design
         st.markdown(f"""
         <div class="profile-card">
