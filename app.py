@@ -44,7 +44,6 @@ if 'current_view' not in st.session_state:
 
 # 4. MAIN APP LOGIC
 def main():
-    st.sidebar.write("✅ Version: 2.5-Flash")
     # --- BEAUTIFUL CSS STYLING WITH VIBRANT COLORS ---
     st.markdown("""
         <style>
