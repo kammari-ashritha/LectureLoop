@@ -18,7 +18,7 @@ except ImportError:
 
 # --- CONFIGURATION ---
 # Priority: Environment variable > .env file > hardcoded fallback
-API_KEY = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY") or "AIzaSyAO-lVQnVlh_Et-M4SlEI86wtnoSp6IS8s"
+API_KEY = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY") 
 
 if not API_KEY:
     raise ValueError("Google API key not found. Please set GOOGLE_API_KEY or GEMINI_API_KEY environment variable.")
