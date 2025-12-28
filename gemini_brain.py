@@ -1,13 +1,6 @@
 import google.generativeai as genai
-import os
+import streamlit as st
 from pypdf import PdfReader
-
-# Try to load environment variables from .env file
-try:
-    from dotenv import load_dotenv
-    load_dotenv()
-except ImportError:
-    pass  # python-dotenv not installed, skip
 
 # Try to import google.api_core exceptions for better error handling
 try:
@@ -17,18 +10,18 @@ except ImportError:
     HAS_GOOGLE_EXCEPTIONS = False
 
 # --- CONFIGURATION ---
-# Priority: Environment variable > .env file > hardcoded fallback
-API_KEY = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY") 
-
-if not API_KEY:
-    raise ValueError("Google API key not found. Please set GOOGLE_API_KEY or GEMINI_API_KEY environment variable.")
+# Load API Key from Streamlit Secrets
+try:
+    API_KEY = st.secrets["GOOGLE_API_KEY"]
+except KeyError:
+    st.error("Missing 'GOOGLE_API_KEY' in secrets.toml")
+    st.stop()
 
 genai.configure(api_key=API_KEY)
 
-def get_gemini_model(model_name='gemini-2.5-flash'):
+def get_gemini_model(model_name='gemini-2.0-flash'):
     """
-    Get a Gemini model. Defaults to 'gemini-2.5-flash' (fast and efficient).
-    Available models: gemini-2.5-flash, gemini-2.5-pro, gemini-2.0-flash, gemini-pro-latest
+    Get a Gemini model. Defaults to 'gemini-2.0-flash' (fast and efficient).
     """
     try:
         return genai.GenerativeModel(model_name)
@@ -46,7 +39,7 @@ def extract_text_from_pdf(pdf_file):
 # --- FEATURE 1: PODCAST GENERATOR ---
 def generate_podcast_script(text_content):
     # Try multiple models in order (using confirmed available models)
-    model_names = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash', 'gemini-pro-latest']
+    model_names = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-pro']
     
     prompt = f"""
     You are an expert podcast producer. 
@@ -70,42 +63,16 @@ def generate_podcast_script(text_content):
             return response.text
         except Exception as e:
             last_error = e
-            # If this is the last model, we'll raise the error
             if model_name == model_names[-1]:
                 break
-            # Otherwise, try the next model
             continue
     
-    # If we get here, all models failed
-    error_type = type(last_error).__name__ if last_error else "Unknown"
-    if HAS_GOOGLE_EXCEPTIONS and last_error and isinstance(last_error, google_exceptions.NotFound):
-        error_msg = (
-            f"API Error: None of the models worked. Tried: {', '.join(model_names)}\n"
-            "Please check:\n"
-            "1. Your Google API key is valid and has Gemini API enabled\n"
-            "2. The Gemini API is enabled in your Google Cloud Console\n"
-            "3. You have billing enabled (free tier is available)\n"
-            "4. Go to https://makersuite.google.com/app/apikey to get a valid API key\n"
-            f"Last error details: {str(last_error)}"
-        )
-    elif last_error and ("NotFound" in error_type or "404" in str(last_error) or "not found" in str(last_error).lower()):
-        error_msg = (
-            f"API Error: None of the models worked. Tried: {', '.join(model_names)}\n"
-            "Please check:\n"
-            "1. Your Google API key is valid and has Gemini API enabled\n"
-            "2. The Gemini API is enabled in your Google Cloud Console\n"
-            "3. You have billing enabled (free tier is available)\n"
-            "4. Go to https://makersuite.google.com/app/apikey to get a valid API key\n"
-            f"Last error details: {str(last_error)}"
-        )
-    else:
-        error_msg = f"Error generating podcast script after trying all models: {str(last_error)}"
-    raise Exception(error_msg) from last_error
+    raise Exception(f"Error generating podcast script: {str(last_error)}")
 
 # --- FEATURE 2: FLASHCARDS GENERATOR ---
 def generate_flashcards(text_content):
-    # Try multiple models in order (using confirmed available models)
-    model_names = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash', 'gemini-pro-latest']
+    # Try multiple models in order
+    model_names = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-pro']
     
     # We ask for JSON so we can easily display it later
     prompt = f"""
@@ -131,56 +98,21 @@ def generate_flashcards(text_content):
             return response.text
         except Exception as e:
             last_error = e
-            # If this is the last model, we'll raise the error
             if model_name == model_names[-1]:
                 break
-            # Otherwise, try the next model
             continue
     
-    # If we get here, all models failed
-    error_type = type(last_error).__name__ if last_error else "Unknown"
-    if HAS_GOOGLE_EXCEPTIONS and last_error and isinstance(last_error, google_exceptions.NotFound):
-        error_msg = (
-            f"API Error: None of the models worked. Tried: {', '.join(model_names)}\n"
-            "Please check:\n"
-            "1. Your Google API key is valid and has Gemini API enabled\n"
-            "2. The Gemini API is enabled in your Google Cloud Console\n"
-            "3. You have billing enabled (free tier is available)\n"
-            "4. Go to https://makersuite.google.com/app/apikey to get a valid API key\n"
-            f"Last error details: {str(last_error)}"
-        )
-    elif last_error and ("NotFound" in error_type or "404" in str(last_error) or "not found" in str(last_error).lower()):
-        error_msg = (
-            f"API Error: None of the models worked. Tried: {', '.join(model_names)}\n"
-            "Please check:\n"
-            "1. Your Google API key is valid and has Gemini API enabled\n"
-            "2. The Gemini API is enabled in your Google Cloud Console\n"
-            "3. You have billing enabled (free tier is available)\n"
-            "4. Go to https://makersuite.google.com/app/apikey to get a valid API key\n"
-            f"Last error details: {str(last_error)}"
-        )
-    else:
-        error_msg = f"Error generating flashcards after trying all models: {str(last_error)}"
-    raise Exception(error_msg) from last_error
+    raise Exception(f"Error generating flashcards: {str(last_error)}")
 
 # --- FEATURE 3: SOCRATIC CHAT ---
 def chat_with_document(question: str, document_content: str, chat_history: list = None):
     """
     Answer questions about a document using Gemini AI.
-    
-    Args:
-        question: User's question
-        document_content: The document text to use as context
-        chat_history: Previous chat messages (optional)
-        
-    Returns:
-        AI's response as a string
     """
-    # Try multiple models in order
-    model_names = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash', 'gemini-pro-latest']
+    model_names = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-pro']
     
     # Build context from document (limit to avoid token limits)
-    context = document_content[:20000]  # Limit context length
+    context = document_content[:20000] 
     
     # Build prompt with context and conversation history
     prompt = f"""You are a helpful AI tutor. Answer questions about the following document content in a clear, educational manner.
@@ -214,6 +146,4 @@ Please provide a helpful, educational answer based on the document content above
                 break
             continue
     
-    # If all models failed
-    error_msg = f"Error generating chat response: {str(last_error)}"
-    raise Exception(error_msg) from last_error
+    raise Exception(f"Error generating chat response: {str(last_error)}")
