@@ -1,9 +1,15 @@
 import os
 import requests
 import streamlit as st
+import firebase_admin
+from firebase_admin import firestore
 
-# PASTE YOUR WEB API KEY HERE FROM STEP 1
-FIREBASE_WEB_API_KEY = "AIzaSyCjg65sbYtvGEeYG--sbMG1tlw2b60WohE"
+# SECURELY RETRIEVE WEB API KEY FROM SECRETS
+try:
+    FIREBASE_WEB_API_KEY = st.secrets["FIREBASE_WEB_API_KEY"]
+except KeyError:
+    st.error("Missing 'FIREBASE_WEB_API_KEY' in secrets.toml")
+    st.stop()
 
 def sign_in_with_email_and_password(email, password):
     request_url = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={FIREBASE_WEB_API_KEY}"
@@ -79,15 +85,15 @@ def handle_auth():
                         # Save name to Firebase if provided
                         if name_up:
                             try:
-                                import firebase_admin
-                                from firebase_admin import firestore
+                                # Ensure app is initialized in app.py before this runs
                                 db = firestore.client()
                                 user_id = email_up.split('@')[0]
                                 db.collection('users').document(user_id).set({
                                     'name': name_up,
                                     'email': email_up
                                 }, merge=True)
-                            except:
+                            except Exception as e:
+                                print(f"Error saving user name: {e}")
                                 pass
                         st.success("Account created! Please log in.")
                     else:
