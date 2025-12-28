@@ -1,0 +1,10 @@
+streamlit
+firebase-admin
+google-cloud-aiplatform
+google-generativeai
+python-dotenv
+streamlit-option-menu
+pypdf
+gtts
+
+
