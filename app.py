@@ -686,7 +686,7 @@ def dashboard_interface():
                             save_user_data_to_firebase(user_email, {'mindmap_code': dot_code})
                         # --------------------------------
 
-                        st.success("Map generated and saved to database!")
+                        st.success("Map generated !")
                     except Exception as e:
                         st.error(f"Failed to generate map: {e}")
 
