@@ -693,8 +693,17 @@ def dashboard_interface():
             # Display the map if it exists in memory
             if 'mindmap_code' in st.session_state:
                 st.markdown("---")
-                # Render the chart using Streamlit's built-in Graphviz engine
-                st.graphviz_chart(st.session_state['mindmap_code'])
+                # 1. ATTEMPT TO DRAW
+                try:
+                    st.graphviz_chart(st.session_state['mindmap_code'])
+                except Exception as e:
+                    st.error(f"Graph error: {e}")
+
+                # 2. DEBUGGER: Show me the raw code!
+                with st.expander("🕵️ Debug: View Raw Map Code"):
+                    st.code(st.session_state['mindmap_code'], language='dot')
+                    if st.session_state['mindmap_code'].strip() == "":
+                        st.warning("⚠️ The AI returned empty code!")
                 
                 # Option to regenerate
                 if st.button("🔄 Regenerate Map"):
