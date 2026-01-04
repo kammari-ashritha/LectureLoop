@@ -151,7 +151,7 @@ Please provide a helpful, educational answer based on the document content above
 # --- FEATURE 3: MIND MAP GENERATOR ---
 def generate_mindmap_code(text_content):
     # Use the flash model for speed
-    model = genai.GenerativeModel('gemini-2.0-flash-exp')
+    model = genai.GenerativeModel('gemini-1.5-flash')
     
     prompt = f"""
     You are a data visualization expert.
