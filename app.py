@@ -231,6 +231,10 @@ def dashboard_interface():
                 st.session_state['podcast_script'] = user_data.get('podcast_script')
             if 'flashcards' in user_data:
                 st.session_state['flashcards'] = user_data.get('flashcards')
+            # 🟢 ADD THIS NEW BLOCK:
+            if 'mindmap_code' in user_data:
+                st.session_state['mindmap_code'] = user_data.get('mindmap_code')
+            # ----------------------
             if 'processed_files' in user_data:
                 st.session_state.processed_files = user_data.get('processed_files', [])
         st.session_state.user_profile_loaded = True
@@ -289,8 +293,10 @@ def dashboard_interface():
         
         selected = option_menu(
             menu_title="LectureLoop",
-            options=["Home", "Upload & Process", "Podcast", "Flashcards", "Socratic Chat"],
-            icons=["house", "cloud-upload", "mic", "card-text", "chat-dots"],
+           # Added "Mind Map"
+            options=["Home", "Upload & Process", "Podcast", "Flashcards", "Mind Map", "Socratic Chat"],
+            # Added "diagram-3"
+            icons=["house", "cloud-upload", "mic", "card-text", "diagram-3", "chat-dots"],
             menu_icon="cast",
             default_index=0,
             styles={
@@ -658,7 +664,44 @@ def dashboard_interface():
                 st.error(f"Error displaying flashcards: {str(e)}")
         else:
             st.info("ℹ️ Process a document to generate flashcards. Go to 'Upload & Process' to get started!")
+    elif selected == "Mind Map":
+        st.title("🧠 Concept Map")
+        st.markdown("Visualize the connections between ideas in your lecture.")
+        
+        # Check if we have a document
+        if 'document_text' in st.session_state and st.session_state['document_text']:
+            
+            # Button to generate
+            if st.button("Generate Mind Map", type="primary"):
+                with st.spinner("Analyzing connections and drawing map..."):
+                    try:
+                        import gemini_brain
+                        # Generate the code
+                        dot_code = gemini_brain.generate_mindmap_code(st.session_state['document_text'])
+                        st.session_state['mindmap_code'] = dot_code
+                        
+                        # 🟢 ADD THIS DATABASE SAVE BLOCK:
+                        user_email = st.session_state.user.get('email')
+                        if user_email:
+                            save_user_data_to_firebase(user_email, {'mindmap_code': dot_code})
+                        # --------------------------------
 
+                        st.success("Map generated and saved to database!")
+                    except Exception as e:
+                        st.error(f"Failed to generate map: {e}")
+
+            # Display the map if it exists in memory
+            if 'mindmap_code' in st.session_state:
+                st.markdown("---")
+                # Render the chart using Streamlit's built-in Graphviz engine
+                st.graphviz_chart(st.session_state['mindmap_code'])
+                
+                # Option to regenerate
+                if st.button("🔄 Regenerate Map"):
+                    del st.session_state['mindmap_code']
+                    st.rerun()
+        else:
+            st.info("👆 Please go to 'Upload & Process' and process a document first!")
     elif selected == "Socratic Chat":
         st.title("🤖 AI Tutor")
         st.markdown("Ask questions about your uploaded document. The AI will help you understand the content.")
