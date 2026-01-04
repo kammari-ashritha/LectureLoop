@@ -147,3 +147,38 @@ Please provide a helpful, educational answer based on the document content above
             continue
     
     raise Exception(f"Error generating chat response: {str(last_error)}")
+    
+# --- FEATURE 3: MIND MAP GENERATOR ---
+def generate_mindmap_code(text_content):
+    # Use the flash model for speed
+    model = genai.GenerativeModel('gemini-2.0-flash-exp')
+    
+    prompt = f"""
+    You are a data visualization expert.
+    Create a Graphviz DOT code to visualize the relationships between the key concepts in this text.
+    
+    Rules:
+    1. Extract the top 10-15 key concepts.
+    2. Connect them with labeled arrows (e.g., "Mitochondria" -> "ATP" [label="produces"]).
+    3. Return ONLY the DOT code inside a code block. Do not include 'digraph G {{' if it is already in the block.
+    4. Use a professional color scheme (soft blues, teals, and grays).
+    5. Layout should be 'dot' or 'neato'.
+    
+    TEXT:
+    {text_content[:15000]}
+    """
+    
+    try:
+        response = model.generate_content(prompt)
+        content = response.text
+        
+        # Clean the output to get just the code
+        clean_code = content.replace("```dot", "").replace("```graphviz", "").replace("```", "").strip()
+        
+        # Ensure it is a valid digraph
+        if "digraph" not in clean_code:
+            clean_code = f"digraph G {{\n{clean_code}\n}}"
+            
+        return clean_code
+    except Exception as e:
+        return f"digraph G {{ Error -> \"{str(e)}\" }}"
