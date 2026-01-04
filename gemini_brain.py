@@ -149,46 +149,36 @@ Please provide a helpful, educational answer based on the document content above
     raise Exception(f"Error generating chat response: {str(last_error)}")
     
 def generate_mindmap_code(text_content):
-    # OPTION 1: Try the Stable Model (gemini-pro-latest is Index 21 in your list)
+    # USE THIS MODEL: It is Index 19 in your list. Fast, stable, high limits.
+    model = genai.GenerativeModel('gemini-flash-latest')
+    
+    prompt = f"""
+    You are a Graphviz DOT expert. 
+    Create a valid DOT graph code to visualize the key concepts in this text.
+    
+    Rules:
+    1. Extract 10-15 key concepts.
+    2. Connect them with labeled arrows (e.g., "Concept" -> "Detail" [label="includes"]).
+    3. Use 'digraph G'.
+    4. Make the nodes look professional (filled, colors).
+    5. RETURN ONLY THE CODE. No markdown ``` ticks.
+    
+    TEXT: {text_content[:10000]}
+    """
+    
     try:
-        # "gemini-pro-latest" is usually the most reliable for free tiers
-        model = genai.GenerativeModel('gemini-pro-latest') 
-        
-        prompt = f"""
-        You are a Graphviz DOT expert. 
-        Create a simple valid DOT graph for this text.
-        Rules:
-        1. Use 'digraph G'.
-        2. Keep it simple (max 10 nodes).
-        3. No Markdown ticks (```). Just the code.
-        
-        TEXT: {text_content[:5000]}
-        """
-        
         response = model.generate_content(prompt)
-        code = response.text.replace("```dot", "").replace("```graphviz", "").replace("```", "").strip()
-        if "digraph" not in code:
-            code = f"digraph G {{\n{code}\n}}"
-        return code
-
-    except Exception:
-        # OPTION 2: THE "DEMO SAVIOR" (Backup Plan)
-        # If API fails (429 or 404), return this pre-made map so the app NEVER crashes.
-        return """
-        digraph G {
-            rankdir=LR;
-            node [style=filled, fillcolor="#E6F3FF", shape=box, fontname="Sans-Serif", color="#4B0082"];
-            edge [color="#666666"];
+        content = response.text
+        
+        # Clean up any Markdown formatting the AI might add
+        clean_code = content.replace("```dot", "").replace("```graphviz", "").replace("```", "").strip()
+        
+        # Safety check: Ensure it starts with the right graph command
+        if "digraph" not in clean_code:
+            clean_code = f"digraph G {{\n{clean_code}\n}}"
             
-            "Lecture Topic" [fillcolor="#D4AC0D", style=filled];
-            "Core Concept A" [fillcolor="#A9DFBF"];
-            "Core Concept B" [fillcolor="#A9DFBF"];
-            
-            "Lecture Topic" -> "Core Concept A" [label="introduces"];
-            "Lecture Topic" -> "Core Concept B" [label="expands to"];
-            "Core Concept A" -> "Detail 1" [label="includes"];
-            "Core Concept A" -> "Detail 2" [label="requires"];
-            "Core Concept B" -> "Real World Example" [label="demonstrated by"];
-            "Detail 1" -> "Conclusion" [style=dashed];
-        }
-        """
+        return clean_code
+        
+    except Exception as e:
+        # Only return a simple error graph if the API actually fails
+        return f'digraph G {{ "AI Error" -> "{str(e)}" [color="red"]; }}'
