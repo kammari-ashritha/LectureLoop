@@ -667,18 +667,7 @@ def dashboard_interface():
     elif selected == "Mind Map":
         st.title("🧠 Concept Map")
         st.markdown("Visualize the connections between ideas in your lecture.")
-        # --- PASTE THIS DEBUG BLOCK HERE ---
-        with st.expander("🚨 DEBUG: Check Available Models"):
-            if st.button("List My Models"):
-                try:
-                    import google.generativeai as genai
-                    # Get all models that support generating content
-                    my_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
-                    st.success(f"Found {len(my_models)} models!")
-                    st.write(my_models)
-                except Exception as e:
-                    st.error(f"Error listing models: {e}")
-        # -----------------------------------
+      
         # Check if we have a document
         if 'document_text' in st.session_state and st.session_state['document_text']:
             
@@ -709,12 +698,6 @@ def dashboard_interface():
                     st.graphviz_chart(st.session_state['mindmap_code'])
                 except Exception as e:
                     st.error(f"Graph error: {e}")
-
-                # 2. DEBUGGER: Show me the raw code!
-                with st.expander("🕵️ Debug: View Raw Map Code"):
-                    st.code(st.session_state['mindmap_code'], language='dot')
-                    if st.session_state['mindmap_code'].strip() == "":
-                        st.warning("⚠️ The AI returned empty code!")
                 
                 # Option to regenerate
                 if st.button("🔄 Regenerate Map"):
