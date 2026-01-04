@@ -17,12 +17,13 @@ LectureLoop AI aims to bridge the gap between passive listening and active learn
 * **Database:** Firebase
 * **Authentication:** Custom Streamlit Auth
 
-## ✨ Features
+## ✨ Key Features
 
-* **Secure User Authentication:** Login and Sign-up functionality to save user progress.
-* **AI-Powered Summarization(Podcast):** [Description: e.g., Upload lecture notes or PDFs to get instant summaries.]
-* **Interactive Q&A(Socratic Chat):** [Description: e.g., Chat with your study materials to clarify doubts.]
-* **Smart Quiz Generation(Flashcards):** [Description: e.g., Auto-generate quizzes from lecture content.]
+* **🔐 Secure User Authentication:** Robust login and sign-up functionality using Firebase Auth to save user progress securely.
+* **🎙️ AI Podcast Studio:** Instantly converts boring lecture notes into engaging audio summaries using Google Gemini & TTS.
+* **🧠 Dynamic Concept Maps:** Visualizes complex relationships between ideas using Knowledge Graphs (Graphviz + Gemini).
+* **🃏 Smart Flashcards:** Auto-generates spaced-repetition study cards to help master key concepts quickly.
+* **💬 Socratic Chatbot:** A 24/7 AI tutor that answers questions strictly based on your uploaded lecture material.
 
 ## ⚙️ Installation & Setup
 
