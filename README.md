@@ -55,7 +55,7 @@ Follow these steps to set up the project locally:
     ``
     
 ### Login Screen
-https://lectureloop-ncqd63jcdpmjldxkfed7sg.streamlit.app/
+[https://lectureloop-fz32tyhum2ysdetjhrv8sg.streamlit.app/]
 *(Live Demo Link.)*
 
 
